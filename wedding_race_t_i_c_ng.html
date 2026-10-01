@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TÀI ❤️ CƯƠNG - WEDDING RACE</title>
+  <!-- Google Fonts & Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti for podium celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            wedding: {
+              pink: '#ff4d79',
+              lightPink: '#fff0f3',
+              gold: '#d4af37',
+              darkGold: '#b8860b',
+              navy: '#1a1a2e',
+              cream: '#fdfbf7'
+            }
+          },
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            serif: ['Playfair Display', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar & race styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #fdf2f4;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #f472b6;
+      border-radius: 9999px;
+    }
+    .finish-pattern {
+      background-image: linear-gradient(45deg, #000 25%, transparent 25%),
+                        linear-gradient(-45deg, #000 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #000 75%),
+                        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+      background-color: #fff;
+    }
+    .track-lane {
+      position: relative;
+      background: linear-gradient(90deg, #fce7f3 0%, #fff 15%, #fff 85%, #fce7f3 100%);
+    }
+    @keyframes bobbing {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(3deg); }
+    }
+    .animate-bob {
+      animation: bobbing 0.4s infinite ease-in-out;
+    }
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+      50% { box-shadow: 0 0 35px rgba(212, 175, 55, 0.85); }
+    }
+    .gold-glow {
+      animation: pulse-gold 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-[#faf5f6] text-gray-800 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
+
+  <header class="bg-white/90 backdrop-blur-md border-b border-pink-200 sticky top-0 z-40 px-4 py-3 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-rose-400 flex items-center justify-center text-white text-xl shadow-md">
+        💍
+      </div>
+      <div>
+        <h1 class="font-serif text-lg sm:text-2xl font-bold tracking-wide text-pink-600 flex items-center gap-1 sm:gap-2">
+          <span>TÀI</span>
+          <span class="text-rose-500 animate-pulse text-sm sm:text-lg">❤️</span>
+          <span>CƯƠNG</span>
+        </h1>
+        <p class="text-[11px] sm:text-xs tracking-wider uppercase font-semibold text-wedding-darkGold">
+          Wedding Race &bull; Đường Đua Hạnh Phúc
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2">
+      <button id="btnSoundToggle" onclick="toggleAudio()" class="px-3 py-1.5 rounded-full text-xs font-semibold border border-pink-200 bg-pink-50 hover:bg-pink-100 text-pink-700 transition flex items-center gap-1">
+        <span id="soundIcon">🔊</span> <span class="hidden sm:inline" id="soundText">Âm thanh: BẬT</span>
+      </button>
+      <button onclick="toggleMobileSimulator()" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:opacity-90 shadow-sm transition flex items-center gap-1">
+        📱 <span class="hidden md:inline">Giả lập</span> Điện thoại
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col lg:flex-row p-3 sm:p-5 gap-4 max-w-7xl mx-auto w-full">
+    
+    <!-- MÀN HÌNH CHÍNH (HOST - MÁY CHIẾU/TV) -->
+    <div id="hostScreen" class="flex-1 flex flex-col bg-white rounded-2xl shadow-xl border border-pink-100 overflow-hidden relative min-h-[580px]">
+      
+      <!-- STAGE 1: LOBBY -->
+      <section id="viewLobby" class="flex-1 p-5 sm:p-8 flex flex-col justify-between">
+        <!-- Title Banner -->
+        <div class="text-center space-y-1">
+          <div class="inline-block px-4 py-1 rounded-full bg-pink-100 text-pink-700 text-xs sm:text-sm font-bold uppercase tracking-widest mb-1">
+            ✨ Sảnh Chờ Nhập Cuộc ✨
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 font-serif">
+            SẴN SÀNG CHO ĐƯỜNG ĐUA TÌNH YÊU
+          </h2>
+          <p class="text-gray-500 text-sm max-w-xl mx-auto">
+            Khách mời quét mã QR bên dưới hoặc gia nhập từ bộ điều khiển để chọn linh vật thi đấu rinh quà may mắn!
+          </p>
+        </div>
+
+        <!-- Center: QR Code & Quick Controls -->
+        <div class="my-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <!-- QR Box -->
+          <div class="bg-gradient-to-b from-pink-50 to-white p-5 rounded-2xl border-2 border-pink-200 text-center flex flex-col items-center shadow-inner">
+            <div class="relative bg-white p-3 rounded-xl border border-pink-200 shadow-sm">
+              <!-- SVG QR Code Giả lập sắc nét -->
+              <svg width="140" height="140" viewBox="0 0 140 140" class="rounded">
+                <rect width="140" height="140" fill="white"/>
+                <path d="M10 10h40v40h-40z M20 20h20v20h-20z M90 10h40v40h-40z M100 20h20v20h-20z M10 90h40v40h-40z M20 100h20v20h-20z" fill="#ff2e63"/>
+                <!-- Dummy QR data blocks -->
+                <rect x="25" y="25" width="10" height="10" fill="#1a1a2e"/>
+                <rect x="105" y="25" width="10" height="10" fill="#1a1a2e"/>
+                <rect x="25" y="105" width="10" height="10" fill="#1a1a2e"/>
+                <rect x="60" y="15" width="15" height="15" fill="#ff4d79"/>
+                <rect x="60" y="45" width="15" height="15" fill="#1a1a2e"/>
+                <rect x="65" y="70" width="10" height="20" fill="#ff4d79"/>
+                <rect x="15" y="60" width="20" height="10" fill="#1a1a2e"/>
+                <rect x="90" y="60" width="30" height="15" fill="#1a1a2e"/>
+                <rect x="85" y="90" width="20" height="20" fill="#ff4d79"/>
+                <rect x="115" y="110" width="15" height="15" fill="#1a1a2e"/>
+                <rect x="60" y="105" width="15" height="20" fill="#1a1a2e"/>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span class="bg-white/95 px-2 py-0.5 rounded-full text-[10px] font-black text-rose-600 border border-pink-300 shadow">
+                  TÀI❤️CƯƠNG
+                </span>
+              </div>
+            </div>
+            <div class="mt-3 font-bold text-gray-700 text-sm flex items-center gap-1 text-pink-600">
+              <span>📷 Quét mã trên điện thoại</span>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-0.5">Hoặc bấm giả lập điện thoại bên phải</p>
+          </div>
+
+          <!-- Quick Action Controls -->
+          <div class="md:col-span-2 flex flex-col justify-center space-y-4 bg-pink-50/60 p-5 rounded-2xl border border-pink-200">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                Danh sách người chơi (<span id="playerCount">0</span>)
+              </span>
+              <div class="flex gap-2">
+                <button onclick="addBotPlayers(5)" class="text-xs bg-white hover:bg-pink-100 text-pink-700 font-semibold px-3 py-1.5 rounded-lg border border-pink-300 transition shadow-sm">
+                  + Thêm 5 Khách Mời
+                </button>
+                <button onclick="clearAllPlayers()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-2 py-1.5 rounded-lg border border-rose-200 transition">
+                  Xóa hết
+                </button>
+              </div>
+            </div>
+
+            <!-- Player Tags Grid -->
+            <div id="lobbyPlayerGrid" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 bg-white/80 rounded-xl border border-pink-100 min-h-[90px] content-start">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Start Race Big Button -->
+            <div class="pt-2 flex items-center justify-between gap-4">
+              <div class="text-xs text-gray-500 italic">
+                * Tối thiểu 2 người để bắt đầu cuộc đua sôi động
+              </div>
+              <button id="btnStartRace" onclick="prepareCountdown()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-base tracking-wide shadow-lg hover:shadow-teal-500/30 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                🏁 BẮT ĐẦU ĐUA (START)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wedding Footer Note in Lobby -->
+        <div class="text-center text-xs text-pink-400 font-medium">
+          💍 Hân hạnh đón tiếp quý quan khách &bull; Chúc bạn giành chiến thắng 500k từ cô dâu & chú rể!
+        </div>
+      </section>
+
+      <div id="viewCountdown" class="hidden absolute inset-0 bg-black/85 z-50 flex flex-col items-center justify-center text-white">
+        <p class="text-pink-300 font-bold tracking-widest text-lg uppercase mb-2">Cuộc Đua Tình Yêu Sắp Bắt Đầu!</p>
+        <div id="countdownNumber" class="text-8xl sm:text-9xl font-black text-amber-400 scale-125 transition-transform duration-300 drop-shadow-[0_10px_20px_rgba(255,215,0,0.5)]">
+          3
+        </div>
+        <p class="text-gray-300 text-sm mt-4 italic animate-pulse">Cùng hướng mắt lên màn hình và chuẩn bị cổ vũ nào...</p>
+      </div>
+
+      <section id="viewRace" class="hidden flex-1 flex flex-col p-3 sm:p-5 relative bg-[#fffbfa]">
+        <!-- Track Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-pink-200">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+            <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-rose-700">ĐANG ĐUA KỊCH TÍNH</span>
+          </div>
+          <!-- Live Leader Mini Ribbon -->
+          <div class="text-xs bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
+            <span>🔥 Dẫn đầu:</span>
+            <span id="liveLeaderName" class="text-rose-600">Đang cập nhật...</span>
+          </div>
+        </div>
+
+        <!-- Track Area with Lanes -->
+        <div class="flex-1 my-3 overflow-y-auto pr-1 relative rounded-xl border-2 border-pink-200 bg-white shadow-inner flex flex-col justify-start">
+          
+          <!-- Finish line marker -->
+          <div class="absolute right-0 top-0 bottom-0 w-8 finish-pattern border-l-2 border-gray-900 z-10 opacity-90 flex items-center justify-center">
+            <div class="transform -rotate-90 text-[11px] font-black text-rose-600 bg-white/90 px-2 py-0.5 rounded shadow whitespace-nowrap">
+              ĐÍCH 🏆
+            </div>
+          </div>
+
+          <!-- Lanes Container -->
+          <div id="trackLanesContainer" class="divide-y divide-pink-100">
+            <!-- Dynamic lanes generated by JS -->
+          </div>
+        </div>
+
+        <!-- Live Commentary ticker -->
+        <div class="bg-pink-50 px-3 py-2 rounded-lg border border-pink-200 text-xs text-pink-800 flex items-center justify-between">
+          <span id="raceCommentary" class="font-semibold italic">🎉 Các tay đua xuất phát ngang sức ngang tài! Ai sẽ chạm đích đầu tiên?</span>
+          <span class="text-[11px] text-gray-500 font-mono">Tốc độ RNG Live</span>
+        </div>
+      </section>
+
+      <section id="viewPodium" class="hidden flex-1 p-6 sm:p-8 flex flex-col items-center justify-between text-center relative overflow-hidden bg-gradient-to-b from-white via-pink-50/50 to-pink-100">
+        <!-- Floating hearts decor -->
+        <div class="absolute top-4 left-6 text-2xl animate-bounce">💖</div>
+        <div class="absolute top-10 right-8 text-2xl animate-bounce" style="animation-delay: 0.3s">🎉</div>
+        <div class="absolute bottom-6 left-10 text-3xl animate-bounce" style="animation-delay: 0.6s">✨</div>
+
+        <!-- Celebration Header -->
+        <div class="space-y-1 z-10">
+          <div class="inline-block px-4 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-extrabold text-xs uppercase tracking-widest shadow-sm">
+            🏆 KẾT QUẢ CHUNG CUỘC 🏆
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-black text-rose-600 font-serif tracking-tight">
+            VINH DANH NHÀ VÔ ĐỊCH
+          </h2>
+          <p class="text-gray-600 text-sm font-medium">
+            Chúc mừng các tay đua xuất sắc nhất đã cán đích ngoạn mục!
+          </p>
+        </div>
+
+        <!-- Podium Top 3 Standings -->
+        <div class="w-full max-w-2xl my-6 grid grid-cols-3 gap-2 sm:gap-4 items-end z-10 px-2">
+          
+          <!-- RANK 2 (BẠC) -->
+          <div class="flex flex-col items-center order-1">
+            <div id="podium2Avatar" class="text-4xl sm:text-5xl mb-1 filter drop-shadow">🐻</div>
+            <div id="podium2Name" class="font-bold text-gray-800 text-sm sm:text-base truncate max-w-full">Tên Khách</div>
+            <div class="text-[11px] sm:text-xs font-bold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full my-1">
+              🥈 300.000đ
+            </div>
+            <div class="w-full h-24 sm:h-32 bg-gradient-to-t from-slate-300 to-slate-100 border-2 border-slate-300 rounded-t-xl flex flex-col justify-center items-center shadow-md">
+              <span class="text-2xl sm:text-4xl font-black text-slate-700">2</span>
+              <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Á Quân 1</span>
+            </div>
+          </div>
+
+          <!-- RANK 1 (VÀNG) -->
+          <div class="flex flex-col items-center order-2">
+            <div class="text-rose-500 text-lg sm:text-2xl animate-bounce">👑</div>
+            <div id="podium1Avatar" class="text-5xl sm:text-7xl mb-1 filter drop-shadow-lg animate-bob">🐰</div>
+            <div id="podium1Name" class="font-extrabold text-pink-700 text-base sm:text-xl truncate max-w-full">Quán Quân</div>
+            <div class="text-xs sm:text-sm font-extrabold text-amber-900 bg-gradient-to-r from-amber-300 to-yellow-400 px-3 py-1 rounded-full my-1 shadow">
+              🥇 500.000đ
+            </div>
+            <div class="w-full h-36 sm:h-44 bg-gradient-to-t from-amber-400 via-amber-200 to-yellow-100 border-2 border-amber-400 rounded-t-2xl flex flex-col justify-center items-center shadow-xl relative gold-glow">
+              <span class="text-4xl sm:text-6xl font-black text-amber-800">1</span>
+              <span class="text-xs sm:text-sm font-black text-amber-700 tracking-wider uppercase">QUÁN QUÂN</span>
+            </div>
+          </div>
+
+          <!-- RANK 3 (ĐỒNG) -->
+          <div class="flex flex-col items-center order-3">
+            <div id="podium3Avatar" class="text-4xl sm:text-5xl mb-1 filter drop-shadow">🐱</div>
+            <div id="podium3Name" class="font-bold text-gray-800 text-sm sm:text-base truncate max-w-full">Tên Khách</div>
+            <div class="text-[11px] sm:text-xs font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full my-1 border border-amber-300">
+              🥉 200.000đ
+            </div>
+            <div class="w-full h-20 sm:h-28 bg-gradient-to-t from-amber-200 to-orange-100 border-2 border-amber-300 rounded-t-xl flex flex-col justify-center items-center shadow-md">
+              <span class="text-2xl sm:text-4xl font-black text-amber-900">3</span>
+              <span class="text-[10px] sm:text-xs font-bold text-amber-800 uppercase">Á Quân 2</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bride & Groom Thank You Message -->
+        <div class="z-10 max-w-xl mx-auto bg-white/90 p-3 sm:p-4 rounded-2xl border border-pink-200 shadow-sm space-y-1">
+          <p class="text-sm sm:text-base font-extrabold text-pink-600">
+            💙 CẢM ƠN BẠN ĐÃ THAM GIA WEDDING RACE CỦA TÀI & CƯƠNG 💙
+          </p>
+          <p class="text-xs text-gray-500">
+            Xin mời 3 bạn chiến thắng tiến lên sân khấu nhận phần thưởng may mắn từ cô dâu & chú rể!
+          </p>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="mt-4 flex gap-3 z-10">
+          <button onclick="fireConfetti()" class="px-4 py-2 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-700 font-bold text-xs sm:text-sm transition">
+            🎉 Bắn Thêm Pháo Hoa
+          </button>
+          <button onclick="resetToLobby()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-extrabold text-xs sm:text-sm shadow-md transition">
+            🔄 Đua Hiệp Mới (Reset)
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <aside id="mobileSimPanel" class="w-full lg:w-80 bg-white rounded-2xl shadow-xl border border-pink-200 flex flex-col p-4 relative shrink-0 transition-all">
+      <div class="flex items-center justify-between border-b border-pink-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📱</span>
+          <div>
+            <h3 class="font-bold text-sm text-gray-800">Điện Thoại Khách Mời</h3>
+            <p class="text-[10px] text-pink-500 font-semibold">Mô phỏng người tham gia</p>
+          </div>
+        </div>
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+      </div>
+
+      <!-- Join Form -->
+      <div id="simJoinForm" class="flex-1 flex flex-col justify-center space-y-4 py-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">TÊN CỦA BẠN</label>
+          <input id="simInputName" type="text" maxlength="12" placeholder="Ví dụ: Minh, Hùng, Linh..." class="w-full px-3 py-2 rounded-xl border border-pink-300 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN LINH VẬT ĐUA</label>
+          <div id="avatarPicker" class="grid grid-cols-5 gap-2 text-2xl p-2 bg-pink-50/60 rounded-xl border border-pink-200">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <button onclick="handleSimJoin()" class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-sm shadow hover:opacity-95 transition transform active:scale-95">
+          ✅ SẴN SÀNG CHẠY!
+        </button>
+
+        <p class="text-[11px] text-gray-400 text-center italic">
+          Khách chỉ cần bấm nút này là nhân vật sẽ nhảy vào danh sách chuẩn bị đua trên màn hình TV!
+        </p>
+      </div>
+
+      <!-- Sim Status Joined -->
+      <div id="simStatusJoined" class="hidden flex-1 flex flex-col items-center justify-center text-center p-4 space-y-3">
+        <div id="simCurrentAvatar" class="text-6xl animate-bounce">🐰</div>
+        <h4 id="simCurrentName" class="font-extrabold text-base text-gray-800">Tên bạn</h4>
+        <div class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+          ĐÃ SẴN SÀNG VÀO VẠCH XUẤT PHÁT!
+        </div>
+        <p class="text-xs text-gray-500">
+          Hãy hướng mắt lên màn hình lớn tiệc cưới của Tài & Cương để cổ vũ nhé!
+        </p>
+        <button onclick="simLeave()" class="text-xs text-rose-500 underline font-medium pt-2">
+          Đổi tên / Chọn con vật khác
+        </button>
+      </div>
+    </aside>
+
+  </main>
+
+  <script>
+    // --- 1. GAME CONSTANTS & STATE ---
+    const AVATARS = [
+      { icon: '🐰', name: 'Thỏ' },
+      { icon: '🐻', name: 'Gấu' },
+      { icon: '🐱', name: 'Mèo' },
+      { icon: '🐶', name: 'Cún' },
+      { icon: '🐸', name: 'Ếch' },
+      { icon: '🐼', name: 'Panda' },
+      { icon: '🐯', name: 'Hổ' },
+      { icon: '🐴', name: 'Ngựa' },
+      { icon: '🦊', name: 'Cáo' },
+      { icon: '🐧', name: 'Cánh cụt' }
+    ];
+
+    const RANDOM_NAMES = [
+      'Bác Năm', 'Cô Út', 'Anh Tuấn', 'Bạn Lan', 'Hoàng MC', 'Chị Mai', 
+      'Khánh Vy', 'Đức Huy', 'Quốc Bảo', 'Thảo My', 'Hải Đăng', 'Ngọc Ánh'
+    ];
+
+    let players = [];
+    let gameState = 'LOBBY'; // LOBBY | COUNTDOWN | RACING | FINISH
+    let selectedAvatar = '🐰';
+    let raceTimer = null;
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    // --- 2. WEB AUDIO API SYNTHESIZER (No external sound files required) ---
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.15, volume = 0.1) {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Fallback quiet
+      }
+    }
+
+    function soundBeep(isHigh = false) {
+      playTone(isHigh ? 880 : 440, 'triangle', 0.2, 0.15);
+    }
+
+    function soundCheer() {
+      if (!audioEnabled) return;
+      // Synthesize rapid celebration fanfare chords
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        setTimeout(() => playTone(freq, 'square', 0.3, 0.1), idx * 120);
+      });
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('soundIcon').innerText = audioEnabled ? '🔊' : '🔇';
+      document.getElementById('soundText').innerText = audioEnabled ? 'Âm thanh: BẬT' : 'Âm thanh: TẮT';
+    }
+
+    // --- 3. INITIALIZATION & UI SETUP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAvatarPicker();
+      // Initialize with default demo players for immediate fun
+      addInitialPlayers();
+      updateLobbyView();
+    });
+
+    function renderAvatarPicker() {
+      const picker = document.getElementById('avatarPicker');
+      picker.innerHTML = '';
+      AVATARS.forEach((av, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `p-1 rounded-lg text-center transition transform hover:scale-110 flex items-center justify-center ${selectedAvatar === av.icon ? 'bg-pink-300 ring-2 ring-pink-500 scale-105' : 'hover:bg-pink-100'}`;
+        btn.innerText = av.icon;
+        btn.onclick = () => {
+          selectedAvatar = av.icon;
+          renderAvatarPicker();
+          playTone(600, 'sine', 0.05);
+        };
+        picker.appendChild(btn);
+      });
+    }
+
+    function addInitialPlayers() {
+      players = [
+        { id: 1, name: 'Chú Rể Tài', avatar: '🐰', progress: 0, rank: null, burst: 0 },
+        { id: 2, name: 'Cô Dâu Cương', avatar: '🐱', progress: 0, rank: null, burst: 0 },
+        { id: 3, name: 'Bạn Minh', avatar: '🐻', progress: 0, rank: null, burst: 0 },
+        { id: 4, name: 'Anh Hùng', avatar: '🐶', progress: 0, rank: null, burst: 0 }
+      ];
+    }
+
+    // --- 4. PLAYER & LOBBY MANAGEMENT ---
+    function updateLobbyView() {
+      const container = document.getElementById('lobbyPlayerGrid');
+      const countEl = document.getElementById('playerCount');
+      const startBtn = document.getElementById('btnStartRace');
+
+      countEl.innerText = players.length;
+      container.innerHTML = '';
+
+      if (players.length === 0) {
+        container.innerHTML = `<span class="text-xs text-gray-400 italic p-2">Chưa có người chơi nào. Bấm '+ Thêm 5 Khách Mời' hoặc nhập bên phải!</span>`;
+      } else {
+        players.forEach(p => {
+          const tag = document.createElement('div');
+          tag.className = 'inline-flex items-center gap-1.5 px-3 py-1 bg-pink-100 text-pink-900 rounded-full text-xs font-semibold border border-pink-200 shadow-sm animate-fade-in';
+          tag.innerHTML = `<span>${p.avatar}</span> <span>${p.name}</span> <span class="text-emerald-500 font-bold">✓</span>`;
+          container.appendChild(tag);
+        });
+      }
+
+      startBtn.disabled = players.length < 2;
+    }
+
+    function addBotPlayers(count = 5) {
+      playTone(550, 'sine', 0.1);
+      const usedNames = players.map(p => p.name);
+      const available = RANDOM_NAMES.filter(n => !usedNames.includes(n));
+      const pool = available.length >= count ? available : RANDOM_NAMES;
+
+      for (let i = 0; i < count; i++) {
+        const randName = pool[Math.floor(Math.random() * pool.length)] + (players.length > 8 ? ` ${players.length}` : '');
+        const randAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)].icon;
+        players.push({
+          id: Date.now() + Math.random(),
+          name: randName,
+          avatar: randAvatar,
+          progress: 0,
+          rank: null,
+          burst: 0
+        });
+      }
+      updateLobbyView();
+    }
+
+    function clearAllPlayers() {
+      players = [];
+      updateLobbyView();
+    }
+
+    // --- 5. MOBILE SIMULATOR HANDLERS ---
+    function handleSimJoin() {
+      const input = document.getElementById('simInputName');
+      const name = input.value.trim() || 'Khách Quý';
+      playTone(700, 'triangle', 0.15);
+
+      const newPlayer = {
+        id: 'sim_' + Date.now(),
+        name: name,
+        avatar: selectedAvatar,
+        progress: 0,
+        rank: null,
+        burst: 0
+      };
+
+      players.push(newPlayer);
+      updateLobbyView();
+
+      // Show joined status on phone
+      document.getElementById('simJoinForm').classList.add('hidden');
+      document.getElementById('simStatusJoined').classList.remove('hidden');
+      document.getElementById('simCurrentAvatar').innerText = selectedAvatar;
+      document.getElementById('simCurrentName').innerText = name;
+    }
+
+    function simLeave() {
+      document.getElementById('simJoinForm').classList.remove('hidden');
+      document.getElementById('simStatusJoined').classList.add('hidden');
+    }
+
+    function toggleMobileSimulator() {
+      const panel = document.getElementById('mobileSimPanel');
+      panel.classList.toggle('hidden');
+    }
+
+    // --- 6. RACE RUNTIME LOGIC ---
+    function prepareCountdown() {
+      if (players.length < 2) return;
+      initAudio();
+
+      gameState = 'COUNTDOWN';
+      document.getElementById('viewLobby').classList.add('hidden');
+      document.getElementById('viewRace').classList.add('hidden');
+      document.getElementById('viewPodium').classList.add('hidden');
+      document.getElementById('viewCountdown').classList.remove('hidden');
+
+      let counter = 3;
+      const countEl = document.getElementById('countdownNumber');
+      countEl.innerText = counter;
+      soundBeep(false);
+
+      const countInterval = setInterval(() => {
+        counter--;
+        if (counter > 0) {
+          countEl.innerText = counter;
+          countEl.classList.remove('scale-125');
+          void countEl.offsetWidth; // retrigger transition
+          countEl.classList.add('scale-125');
+          soundBeep(false);
+        } else if (counter === 0) {
+          countEl.innerText = 'GO! 🎉';
+          soundBeep(true);
+        } else {
+          clearInterval(countInterval);
+          document.getElementById('viewCountdown').classList.add('hidden');
+          startRace();
+        }
+      }, 1000);
+    }
+
+    function startRace() {
+      gameState = 'RACING';
+      document.getElementById('viewRace').classList.remove('hidden');
+
+      // Reset racers
+      players.forEach(p => {
+        p.progress = 0;
+        p.rank = null;
+        p.burst = Math.random() * 0.5;
+      });
+
+      renderLanes();
+
+      let rankCounter = 1;
+      const finishProgress = 92; // 92% width corresponds to finish line banner
+
+      if (raceTimer) clearInterval(raceTimer);
+
+      raceTimer = setInterval(() => {
+        let allFinished = true;
+        let leader = null;
+        let maxProg = -1;
+
+        players.forEach(p => {
+          if (p.progress < finishProgress) {
+            allFinished = false;
+
+            // Randomized burst RNG dynamic
+            const suddenSprint = Math.random() > 0.88 ? (Math.random() * 2.2 + 0.8) : 0;
+            const step = (Math.random() * 1.1 + 0.3) + suddenSprint;
+            p.progress = Math.min(finishProgress, p.progress + step);
+
+            if (p.progress >= finishProgress && !p.rank) {
+              p.rank = rankCounter++;
+              playTone(800 + p.rank * 100, 'sine', 0.2);
+            }
+          }
+
+          if (p.progress > maxProg) {
+            maxProg = p.progress;
+            leader = p;
+          }
+        });
+
+        // Update Leader display
+        if (leader) {
+          document.getElementById('liveLeaderName').innerHTML = `${leader.avatar} <b>${leader.name}</b>`;
+        }
+
+        // Random live commentary
+        if (Math.random() > 0.94) {
+          const quips = [
+            `🔥 ${leader?.name || 'Top đầu'} đang bứt tốc mãnh liệt!`,
+            `🐾 Cuộc đua giằng co từng tấc đất giữa các tay đua!`,
+            `💥 Cố lên nào quý vị ơi, giải thưởng 500k đang vẫy gọi!`,
+            `🎉 Khán phòng đang nín thở dõi theo từng bước chạy!`
+          ];
+          document.getElementById('raceCommentary').innerText = quips[Math.floor(Math.random() * quips.length)];
+        }
+
+        // Re-render positions
+        updateRunnerPositions();
+
+        // Check race finish condition (Top 3 arrived or everyone finished)
+        if (rankCounter > 3 || allFinished) {
+          clearInterval(raceTimer);
+          setTimeout(finishRace, 1200);
+        }
+      }, 90);
+    }
+
+    function renderLanes() {
+      const container = document.getElementById('trackLanesContainer');
+      container.innerHTML = '';
+
+      players.forEach((p, idx) => {
+        const lane = document.createElement('div');
+        lane.className = 'track-lane h-12 flex items-center px-2 relative overflow-hidden';
+        lane.id = `lane_${p.id}`;
+
+        lane.innerHTML = `
+          <!-- Runner Element -->
+          <div id="runner_${p.id}" class="absolute flex items-center gap-1.5 transition-all duration-100 ease-linear z-20" style="left: 0%;">
+            <div class="text-2xl sm:text-3xl select-none filter drop-shadow animate-bob">${p.avatar}</div>
+            <div class="bg-white/95 border border-pink-200 px-2 py-0.5 rounded shadow text-[11px] font-bold text-gray-800 whitespace-nowrap">
+              ${p.name}
+            </div>
+          </div>
+        `;
+        container.appendChild(lane);
+      });
+    }
+
+    function updateRunnerPositions() {
+      players.forEach(p => {
+        const runner = document.getElementById(`runner_${p.id}`);
+        if (runner) {
+          runner.style.left = `${p.progress}%`;
+        }
+      });
+    }
+
+    // --- 7. PODIUM & FINISH CELEBRATION ---
+    function finishRace() {
+      gameState = 'FINISH';
+      document.getElementById('viewRace').classList.add('hidden');
+      document.getElementById('viewPodium').classList.remove('hidden');
+
+      soundCheer();
+      fireConfetti();
+
+      // Sort winners
+      const ranked = [...players].filter(p => p.rank !== null).sort((a, b) => a.rank - b.rank);
+      const unranked = [...players].filter(p => p.rank === null).sort((a, b) => b.progress - a.progress);
+      const finalLeaderboard = [...ranked, ...unranked];
+
+      const p1 = finalLeaderboard[0] || { name: '---', avatar: '🐰' };
+      const p2 = finalLeaderboard[1] || { name: '---', avatar: '🐻' };
+      const p3 = finalLeaderboard[2] || { name: '---', avatar: '🐱' };
+
+      document.getElementById('podium1Name').innerText = p1.name;
+      document.getElementById('podium1Avatar').innerText = p1.avatar;
+
+      document.getElementById('podium2Name').innerText = p2.name;
+      document.getElementById('podium2Avatar').innerText = p2.avatar;
+
+      document.getElementById('podium3Name').innerText = p3.name;
+      document.getElementById('podium3Avatar').innerText = p3.avatar;
+    }
+
+    function fireConfetti() {
+      try {
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          setTimeout(() => {
+            confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 } });
+          }, 300);
+        }
+      } catch (e) {}
+    }
+
+    function resetToLobby() {
+      if (raceTimer) clearInterval(raceTimer);
+      gameState = 'LOBBY';
+      document.getElementById('viewPodium').classList.add('hidden');
+      document.getElementById('viewRace').classList.add('hidden');
+      document.getElementById('viewLobby').classList.remove('hidden');
+      updateLobbyView();
+    }
+  </script>
+</body>
+</html>
